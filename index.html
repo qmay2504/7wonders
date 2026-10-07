@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7 Wonders</title>
+<style>
+:root{--bg:#131824;--panel:#222a3a;--gold:#d4af37;--parch:#f3e9d2;--line:#3a4560}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--parch);font-family:Georgia,serif}
+[hidden]{display:none!important}
+button,input,select{font:inherit}
+button{background:#2e8b57;color:#fff;border:0;border-radius:6px;padding:9px 16px;cursor:pointer;font-weight:bold}
+button:disabled{background:#3a4254;color:#8892a6;cursor:default}
+button.alt{background:#52607a}button.gold{background:#b8901f}button.red{background:#8a3434}
+input,select{padding:8px;border-radius:6px;border:1px solid var(--line);background:#0e1320;color:var(--parch)}
+h1{font-size:56px;color:var(--gold);letter-spacing:6px;margin:.2em 0}
+.center{max-width:520px;margin:6vh auto;padding:0 16px;text-align:center}
+.center button{display:block;width:100%;margin:10px 0;padding:14px;font-size:18px}
+.row{display:flex;gap:8px;align-items:center;justify-content:center;margin:8px 0}
+.row input{flex:1;text-transform:uppercase}
+.box{background:var(--panel);border-radius:10px;padding:14px;margin:12px 0;text-align:left}
+.code{font-size:40px;letter-spacing:8px;color:var(--gold);text-align:center}
+#rules pre{white-space:pre-wrap;font-family:Georgia,serif;background:var(--panel);padding:16px;border-radius:10px;max-width:800px;margin:16px auto}
+/* partie */
+#game{display:grid;grid-template-columns:290px 1fr 350px;gap:10px;padding:10px;height:100vh}
+#game>div{overflow:auto}
+#hdr{font-size:20px;color:var(--gold);font-weight:bold;margin-bottom:6px}
+#hdr button{padding:3px 8px;font-size:12px;margin-left:6px}
+.pl{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;cursor:pointer;font-size:13px}
+.pl.me{border-color:var(--gold)}
+.pl b{font-size:15px}.pl .tag{float:right;color:var(--gold);font-size:11px}
+.pl .sc{color:var(--gold);font-weight:bold}
+.cnt{display:inline-block;min-width:22px;text-align:center;border-radius:5px;margin:2px 2px 0 0;font-size:12px;font-weight:bold;color:#000;padding:1px 3px}
+.sq{display:inline-block;width:13px;height:13px;border:1px solid #6b7592;background:#2f3850;margin-left:3px;vertical-align:middle}
+.sq.on{background:var(--gold)}
+.ic{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;text-align:center;font:bold 11px Arial;border:1px solid #0d0d0d;margin:1px}
+.pv{display:inline-block;width:30px;height:30px;line-height:26px;border-radius:50%;border:3px solid var(--gold);background:#fff6d6;color:#7a5c00;text-align:center;font-weight:bold}
+.mil{display:inline-block;width:30px;height:30px;line-height:30px;border-radius:6px 6px 15px 15px;background:#c0392b;color:#fff;text-align:center;font-weight:bold}
+.sci{display:inline-block;width:30px;height:30px;line-height:30px;border-radius:50%;background:#3fa34d;color:#fff;text-align:center;font-weight:bold}
+#log{background:var(--panel);border-radius:10px;padding:10px;height:26vh;overflow:auto;font-size:13px;line-height:1.5}
+#log .age{color:var(--gold);font-weight:bold;font-size:15px}#log .me{color:#9be28f}
+#actions{min-height:92px;padding:8px 0}
+.hint{margin:4px 0}
+.acts button{margin:3px 6px 3px 0}
+#hand{display:flex;flex-wrap:wrap;gap:8px;padding:6px 0}
+.card{width:128px;min-height:150px;background:var(--parch);color:#222;border:3px solid #111;border-radius:10px;overflow:hidden;cursor:pointer;font-size:12px}
+.card.sel{border-color:var(--gold);transform:translateY(-10px);box-shadow:0 0 10px var(--gold)}
+.card .ch{padding:6px 4px;text-align:center;font-weight:bold;color:#fff;font-size:13px}
+.ch.yellow,.ch.grey{color:#000}
+.card .cc{padding:5px;min-height:28px}.card .ce{padding:4px;text-align:center;min-height:36px}
+.card .cf{padding:2px 4px 5px;font-size:10px;font-style:italic;color:#6b5d3c;text-align:center}
+.stage{background:var(--parch);color:#222;border:2px solid var(--gold);border-radius:8px;padding:6px;margin:6px 0;font-size:12px}
+.stage.done{background:#d8b64a}.stage small{display:block;color:#5a4a20}
+.chips{margin-top:6px}.chip{display:inline-block;border-radius:5px;padding:2px 6px;margin:2px;font:bold 11px Arial;color:#fff;cursor:help}
+.chip.yellow,.chip.grey{color:#000}
+#modal{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;z-index:10}
+#modal .in{background:var(--panel);border:2px solid var(--gold);border-radius:12px;padding:18px;max-width:640px;max-height:88vh;overflow:auto}
+#modal button{margin:4px}#modal table{border-collapse:collapse;width:100%}#modal td,#modal th{padding:4px 8px;text-align:center;border-bottom:1px solid var(--line)}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#8a3434;padding:10px 18px;border-radius:8px;z-index:20}
+@media(max-width:1000px){#game{grid-template-columns:1fr;height:auto}h1{font-size:38px}}
+</style>
+</head>
+<body>
+<noscript>Ce jeu a besoin de JavaScript.</noscript>
+
+<div id="home" class="center screen">
+  <h1>7 WONDERS</h1>
+  <div class="box"><label>Votre prénom<br><input id="name" maxlength="16" placeholder="Prénom" style="width:100%;text-transform:none"></label></div>
+  <button data-go="solo">JOUER SEUL(E) CONTRE DES IA</button>
+  <button data-go="host" class="gold">CRÉER UNE PARTIE EN LIGNE (amis et/ou IA)</button>
+  <div class="row"><input id="joincode" maxlength="5" placeholder="CODE"><button data-go="join" class="alt" style="width:auto;margin:0">REJOINDRE</button></div>
+  <button data-go="rules" class="alt">RÈGLES</button>
+  <p id="boot" style="color:#8892a6;font-size:13px"></p>
+</div>
+
+<div id="lobby" class="center screen" hidden>
+  <h1 style="font-size:36px">SALON</h1>
+  <div id="codebox" class="box" hidden>
+    <div>Code à donner à vos amis :</div><div class="code" id="code"></div>
+    <div style="font-size:12px;word-break:break-all">Lien direct : <span id="link"></span></div>
+  </div>
+  <div class="box"><b>Joueurs connectés</b><div id="names"></div></div>
+  <div class="box" id="hostopts" hidden>
+    <div class="row">Joueurs IA : <select id="nai"></select> Niveau :
+      <select id="level"><option value="0">Facile</option><option value="1" selected>Normal</option><option value="2">Difficile</option></select></div>
+    <label><input type="checkbox" id="shuffle" checked style="width:auto"> Placer les joueurs au hasard autour de la table</label>
+    <p style="font-size:13px;color:#8892a6">Entre 2 et 7 joueurs au total. Amis seulement : mettez 0 IA.</p>
+    <button data-go="start">LANCER LA PARTIE</button>
+  </div>
+  <p id="waitmsg" hidden>En attente du lancement par l'hôte…</p>
+  <button data-go="home" class="red">QUITTER</button>
+</div>
+
+<div id="rules" class="screen" hidden><pre id="rulestxt"></pre><div class="center"><button data-go="home">RETOUR</button></div></div>
+
+<div id="game" class="screen" hidden>
+  <div id="players"></div>
+  <div><div id="hdr"></div><div id="log"></div><div id="actions"></div><div id="hand"></div></div>
+  <div id="myboard"></div>
+</div>
+
+<div id="modal" hidden><div class="in" id="modalin"></div></div>
+<div id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
